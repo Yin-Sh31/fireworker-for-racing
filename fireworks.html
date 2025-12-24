@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浪漫烟花夜空</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #000428, #004e92);
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', sans-serif;
+            position: relative;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .blessings-container {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .blessing {
+            display: inline-block;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+                         0 0 20px rgba(255, 215, 0, 0.6),
+                         0 0 30px rgba(255, 100, 0, 0.4);
+            margin: 5px 0;
+            opacity: 1;
+            transition: opacity 0.5s, transform 0.5s;
+            position: relative;
+            animation: float 2s ease-out;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-20px) scale(1.1); opacity: 0; }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .controls button {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .controls button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .controls button:active {
+            transform: scale(0.98);
+        }
+
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            z-index: 5;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">浪漫烟花夜空</div>
+    <div class="blessings-container" id="blessingsContainer"></div>
+    <div class="click-hint">点击夜空任意位置放烟花，或使用下方按钮</div>
+    <canvas id="fireworksCanvas"></canvas>
+    
+    <div class="controls">
+        <button id="singleFirework">单个烟花</button>
+        <button id="multipleFireworks">连放烟花</button>
+        <button id="clearFireworks">清除烟花</button>
+    </div>
+
+    <script>
+        // 初始化画布
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 音效
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 粒子系统
+        const particles = [];
+        const blessings = [];
+        const maxParticles = 500; // 粒子数量上限
+        const maxBlessings = 3; // 祝福语数量上限
+
+        // 祝福语列表
+        const blessingTexts = [
+            "福星高照", "心想事成", "万事如意", "吉祥如意", 
+            "财源广进", "身体健康", "平安喜乐", "幸福美满",
+            "龙凤呈祥", "百年好合", "早生贵子", "白头偕老",
+            "前程似锦", "飞黄腾达", "步步高升", "金榜题名",
+            "花开富贵", "竹报平安", "四季平安", "岁岁如意"
+        ];
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, color, type) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 2 + 1;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 10,
+                    y: (Math.random() - 0.5) * 10
+                };
+                this.alpha = 1;
+                this.gravity = 0.05;
+                this.friction = 0.97;
+                this.type = type; // 'main' or 'secondary'
+                this.life = type === 'main' ? 100 : 70; // 主粒子生命周期更长
+                this.decay = type === 'main' ? 0.97 : 0.95; // 主粒子衰减更慢
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha *= this.decay;
+                this.life--;
+                
+                return this.alpha > 0.01 && this.life > 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                // 添加光晕效果
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius * 3
+                );
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // 播放烟花音效
+        function playFireworkSound() {
+            // 创建主爆炸音效
+            const oscillator1 = audioContext.createOscillator();
+            const gainNode1 = audioContext.createGain();
+            
+            oscillator1.connect(gainNode1);
+            gainNode1.connect(audioContext.destination);
+            
+            oscillator1.type = 'sine';
+            oscillator1.frequency.setValueAtTime(100, audioContext.currentTime);
+            oscillator1.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+            
+            gainNode1.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator1.start();
+            oscillator1.stop(audioContext.currentTime + 0.5);
+            
+            // 创建回响效果
+            setTimeout(() => {
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                
+                oscillator2.type = 'sine';
+                oscillator2.frequency.setValueAtTime(80, audioContext.currentTime);
+                oscillator2.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.8);
+                
+                gainNode2.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                
+                oscillator2.start();
+                oscillator2.stop(audioContext.currentTime + 0.8);
+            }, 200);
+        }
+
+        // 创建烟花
+        function createFirework(x, y) {
+            // 随机选择颜色
+            const colors = [
+                '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
+                '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', 
+                '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', 
+                '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+            ];
+            
+            const mainColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 主爆炸粒子
+            for (let i = 0; i < 150; i++) {
+                const particle = new Particle(x, y, mainColor, 'main');
+                particles.push(particle);
+            }
+            
+            // 次级爆炸粒子
+            for (let i = 0; i < 100; i++) {
+                const secondaryColor = colors[Math.floor(Math.random() * colors.length)];
+                const particle = new Particle(x, y, secondaryColor, 'secondary');
+                particles.push(particle);
+            }
+            
+            // 播放音效
+            playFireworkSound();
+            
+            // 显示祝福语
+            showBlessing();
+        }
+
+        // 显示祝福语
+        function showBlessing() {
+            const blessingText = blessingTexts[Math.floor(Math.random() * blessingTexts.length)];
+            
+            // 如果祝福语数量达到上限，移除最早的
+            if (blessings.length >= maxBlessings) {
+                const oldestBlessing = blessings.shift();
+                const element = document.getElementById(`blessing-${oldestBlessing.id}`);
+                if (element) element.remove();
+            }
+            
+            // 创建新的祝福语元素
+            const blessingElement = document.createElement('div');
+            blessingElement.className = 'blessing';
+            blessingElement.id = `blessing-${Date.now()}`;
+            blessingElement.textContent = blessingText;
+            
+            // 计算垂直位置
+            const blessingIndex = blessings.length;
+            blessingElement.style.top = `${20 + blessingIndex * 40}px`;
+            
+            document.getElementById('blessingsContainer').appendChild(blessingElement);
+            
+            // 记录祝福语
+            blessings.push({
+                id: Date.now(),
+                element: blessingElement,
+                createdAt: Date.now()
+            });
+            
+            // 2秒后移除祝福语
+            setTimeout(() => {
+                const index = blessings.findIndex(b => b.id === Date.now());
+                if (index !== -1) {
+                    const blessing = blessings[index];
+                    blessing.element.style.opacity = '0';
+                    setTimeout(() => {
+                        if (blessing.element.parentNode) {
+                            blessing.element.parentNode.removeChild(blessing.element);
+                        }
+                        const removeIndex = blessings.findIndex(b => b.id === blessing.id);
+                        if (removeIndex !== -1) {
+                            blessings.splice(removeIndex, 1);
+                        }
+                    }, 500);
+                }
+            }, 2000);
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 清除画布并绘制夜空背景
+            ctx.fillStyle = 'rgba(0, 4, 40, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 更新和绘制粒子
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                if (!particle.update()) {
+                    particles.splice(i, 1);
+                } else {
+                    particle.draw();
+                }
+            }
+            
+            // 如果粒子数量超过上限，清除最早的粒子
+            if (particles.length > maxParticles) {
+                particles.splice(0, particles.length - maxParticles);
+            }
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // 点击事件
+        canvas.addEventListener('click', (e) => {
+            createFirework(e.clientX, e.clientY);
+        });
+
+        // 按钮事件
+        document.getElementById('singleFirework').addEventListener('click', () => {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height * 0.6;
+            createFirework(x, y);
+        });
+
+        document.getElementById('multipleFireworks').addEventListener('click', () => {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.6;
+                    createFirework(x, y);
+                }, i * 300);
+            }
+        });
+
+        document.getElementById('clearFireworks').addEventListener('click', () => {
+            particles.length = 0;
+            blessings.forEach(blessing => {
+                if (blessing.element.parentNode) {
+                    blessing.element.parentNode.removeChild(blessing.element);
+                }
+            });
+            blessings.length = 0;
+        });
+
+        // 启动动画
+        animate();
+
+        // 开始时放一个烟花
+        setTimeout(() => {
+            createFirework(canvas.width / 2, canvas.height / 3);
+        }, 1000);
+    </script>
+</body>
+</html>
