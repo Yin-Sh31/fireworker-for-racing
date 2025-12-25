@@ -17,6 +17,11 @@ window.addEventListener('resize', resizeCanvas);
 const particles = [];
 const fireworks = [];
 
+// 添加螺旋模式相关变量
+let particleCountThreshold = 0; // 连续粒子数超过1500的次数
+const PARTICLE_COUNT_THRESHOLD_MAX = 36; // 阈值：连续3650次
+let spiralModeActive = false; // 螺旋模式是否激活
+
 // 设置粒子数量上限
 const PARTICLE_LIMIT = 2048;
 
@@ -254,7 +259,7 @@ function launchFirework(x, y) {
 
 // 创建星空背景 - 在天空中随机生成星星
 function createStars() {
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < 1; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height / 2;
         const radius = (Math.random() * 1.2);
@@ -286,30 +291,104 @@ function createStars() {
     }
 }
 
+// 螺旋汇集动画函数 - 所有粒子向中心螺旋汇集并逐渐消失
+function spiralGatherAnimation() {
+    // 计算中心点
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // 螺旋参数
+    const spiralSpeed = 0.01; // 减慢螺旋速度
+    const rotationSpeed = 0.02; // 减慢旋转速度
+    const shrinkFactor = 0.995; // 减慢收缩因子
+
+    // 更新所有粒子位置
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const particle = particles[i];
+
+        // 计算到中心的距离
+        const dx = centerX - particle.x;
+        const dy = centerY - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // 如果距离中心很近，加速消失
+        if (distance < 2) {
+            particle.life = 0; // 立即消失
+        } else {
+            // 螺旋运动：逐渐靠近中心并旋转
+            particle.x += dx * spiralSpeed;
+            particle.y += dy * spiralSpeed;
+
+            // 添加旋转效果
+            const rotatedX = centerX + Math.cos(rotationSpeed) * (particle.x - centerX) - Math.sin(rotationSpeed) * (particle.y - centerY);
+            const rotatedY = centerY + Math.sin(rotationSpeed) * (particle.x - centerX) + Math.cos(rotationSpeed) * (particle.y - centerY);
+            particle.x = rotatedX;
+            particle.y = rotatedY;
+
+            // 减少粒子生命值，现在更慢地消失
+            particle.life += 1;
+            particle.alpha = particle.life > 15 ? 1 : particle.life / 15;
+
+            // 缩小粒子半径
+            particle.radius *= shrinkFactor;
+        }
+
+        // 更新并绘制粒子
+        if (!particle.update()) {
+            particles.splice(i, 1);
+        }
+    }
+
+    // 如果所有粒子都消失了，退出螺旋模式
+    if (particles.length === 0) {
+        spiralModeActive = false;
+        particleCountThreshold = 0; // 重置计数器
+    }
+}
+
 // 动画循环函数 - 持续更新和绘制所有元素
 function animate() {
     // 清除画布，使用半透明黑色创建轨迹效果
     ctx.fillStyle = 'rgba(12, 20, 69, 0.12)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 更新并绘制烟花
-    for (let i = fireworks.length - 1; i >= 0; i--) {
-        if (!fireworks[i].update()) {
-            fireworks.splice(i, 1);
+    // 检查是否处于螺旋模式
+    if (spiralModeActive) {
+        // 执行螺旋汇集动画
+        spiralGatherAnimation();
+    } else {
+        // 检查粒子数量是否超过1500
+        if (particles.length > 500) {
+            particleCountThreshold++;
+        } else {
+            particleCountThreshold = 0; // 重置计数器
         }
-    }
 
-    // 更新并绘制粒子
-    for (let i = particles.length - 1; i >= 0; i--) {
-        if (!particles[i].update()) {
-            particles.splice(i, 1);
+        // 如果连续3650次粒子数超过1500，激活螺旋模式
+        if (particleCountThreshold >= PARTICLE_COUNT_THRESHOLD_MAX) {
+            spiralModeActive = true;
+            console.log("螺旋模式激活：所有粒子开始向中心汇集");
         }
-    }
 
-    // 如果粒子数量超过限制，移除最早的粒子
-    if (particles.length > PARTICLE_LIMIT) {
-        const excess = particles.length - PARTICLE_LIMIT;
-        particles.splice(0, excess);
+        // 更新并绘制烟花
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+            if (!fireworks[i].update()) {
+                fireworks.splice(i, 1);
+            }
+        }
+
+        // 更新并绘制粒子
+        for (let i = particles.length - 1; i >= 0; i--) {
+            if (!particles[i].update()) {
+                particles.splice(i, 1);
+            }
+        }
+
+        // 如果粒子数量超过限制，移除最早的粒子
+        if (particles.length > PARTICLE_LIMIT) {
+            const excess = particles.length - PARTICLE_LIMIT;
+            particles.splice(0, excess);
+        }
     }
 
     // 更新粒子计数显示
@@ -320,7 +399,8 @@ function animate() {
 
 // 鼠标点击事件 - 发射烟花
 canvas.addEventListener('click', function (e) {
-    if (particles.length < PARTICLE_LIMIT) { // 预留足够空间
+    // 在螺旋模式期间禁用烟花发射
+    if (!spiralModeActive && particles.length < PARTICLE_LIMIT) { // 预留足够空间
         launchFirework(e.clientX, e.clientY);
     }
 });
