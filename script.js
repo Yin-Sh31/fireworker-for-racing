@@ -283,6 +283,50 @@ class Particle {
     }
 }
 
+// 文本粒子类 - 用于显示祝福语
+class TextParticle {
+    /**
+     * 创建一个新的文本粒子
+     * @param {number} x - 文本的x坐标
+     * @param {number} y - 文本的y坐标
+     * @param {string} text - 要显示的文本内容
+     * @param {string} color - 文本的颜色
+     */
+    constructor(x, y, text, color) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.alpha = 1;
+        this.life = 32; // 持续10帧
+        this.maxLife = 10;
+    }
+
+    // 绘制文本
+    draw() {
+        ctx.globalAlpha = this.alpha;
+        ctx.font = 'bold 24px Arial';
+        ctx.fillStyle = this.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.globalAlpha = 1;
+    }
+
+    // 更新文本状态并返回是否存活
+    update() {
+        // 减少生命值和透明度
+        this.life--;
+        this.alpha = this.life / this.maxLife;
+
+        // 绘制文本
+        this.draw();
+
+        // 返回是否还存活
+        return this.life > 0;
+    }
+}
+
 // 烟花类 - 定义烟花发射和爆炸的逻辑
 class Firework {
     /**
@@ -409,12 +453,24 @@ class Firework {
 }
 
 // 发射烟花函数 - 从底部向上发射烟花
-function launchFirework(x, y) {
+function launchFirework(startX, startY, targetX, targetY) {
     // 从底部发射
-    const startX = x;
-    const startY = canvas.height;
+    const startFromX = startX;
+    const startFromY = canvas.height;
 
-    fireworks.push(new Firework(startX, startY, x, y));
+    // 如果没有提供目标位置，则使用点击位置，但增加随机偏移
+    if (targetY === undefined) {
+        targetX = Math.max(50, Math.min(canvas.width - 50, startX + (Math.random() * 100 - 50)));
+        targetY = Math.max(50, Math.min(canvas.height - 50, startY + (Math.random() * 100 - 50)));
+    }
+
+    fireworks.push(new Firework(startFromX, startFromY, targetX, targetY));
+
+    // 添加随机4字祝福语
+    const blessings = ['一帆风顺', '万事如意', '心想事成', '步步高升', '平安喜乐', '身体健康', '工作顺利', '学业有成', '龙马精神', '笑口常开'];
+    const randomBlessing = blessings[Math.floor(Math.random() * blessings.length)];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    particles.push(new TextParticle(targetX, targetY - 50, randomBlessing, randomColor)); // 在爆炸点上方显示祝福语
 }
 
 // 创建星空背景 - 在天空中随机生成星星
@@ -518,7 +574,7 @@ function animate() {
         spiralGatherAnimation();
     } else {
         // 检查粒子数量是否超过1500
-        if (particles.length > 800) {
+        if (particles.length > 400) {
             particleCountThreshold++;
         } else {
             particleCountThreshold = 0; // 重置计数器
@@ -559,8 +615,8 @@ function animate() {
         drawImageParticles();
     }
 
-    // 更新粒子计数显示
-    counterElement.textContent = particles.length;
+    // 更新粒子计数和阈值计数显示
+    counterElement.textContent = `Particles: ${particles.length} | Threshold: ${particleCountThreshold}`;
 
     requestAnimationFrame(animate);
 }
@@ -569,7 +625,12 @@ function animate() {
 canvas.addEventListener('click', function (e) {
     // 在螺旋模式期间禁用烟花发射
     if (!spiralModeActive && particles.length < PARTICLE_LIMIT) { // 预留足够空间
-        launchFirework(e.clientX, e.clientY);
+        // 计算随机偏移位置，让爆炸点在点击位置的上下左右随机偏移
+        const offsetX = Math.random() * 100 - 50; // -50 到 50 像素的随机偏移
+        const offsetY = Math.random() * 100 - 50; // -50 到 50 像素的随机偏移
+        const targetX = Math.max(50, Math.min(canvas.width - 50, e.clientX + offsetX)); // 限制在画布内
+        const targetY = Math.max(50, Math.min(canvas.height - 50, e.clientY + offsetY)); // 限制在画布内
+        launchFirework(e.clientX, e.clientY, targetX, targetY);
     }
 });
 
