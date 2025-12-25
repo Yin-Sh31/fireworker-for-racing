@@ -56,14 +56,14 @@ class Particle {
         if (this.type === 'trail') {
             this.velocity.y = Math.random() * -3 - 1; // 向上运动
             this.gravity = 0.01;
-            this.life = Math.random() * 30 + 60;
+            this.life = Math.random() * 16 + 16; // 缩短生命周期
         } else if (this.type === 'spark') {
             this.velocity.x *= 2;
             this.velocity.y *= 2;
-            this.life = Math.random() * 50 + 50;
+            this.life = Math.random() * 32 + 32; // 缩短生命周期
             this.shrink = Math.random() * 0.03 + 0.01;
         } else {
-            this.life = Math.random() * 80 + 80; // 延长生命周期
+            this.life = Math.random() * 28 + 28; // 缩短生命周期
         }
     }
 
@@ -104,7 +104,7 @@ class Particle {
 
         // 减少alpha值，模拟消失效果
         this.life--;
-        this.alpha = this.life > 30 ? 1 : this.life / 30;
+        this.alpha = this.life > 15 ? 1 : this.life / 15; // 更快地减少alpha值
 
         // 减小半径
         this.radius -= this.shrink;
