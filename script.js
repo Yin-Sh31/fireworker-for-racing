@@ -63,7 +63,7 @@ class Particle {
             this.life = Math.random() * 3 + 3; // 缩短生命周期
             this.shrink = Math.random() * 0.03 + 0.01;
         } else {
-            this.life = Math.random() * 2 + 2; // 缩短生命周期
+            this.life = Math.random() * 24 + 24; // 缩短生命周期
         }
     }
 
