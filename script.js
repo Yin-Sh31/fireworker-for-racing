@@ -97,8 +97,8 @@ function loadImageAsParticles() {
                     const appearDelay = delayFactor * 10; // 最大延迟120帧
 
                     // 随机生命值和消失延迟
-                    const life = Math.random() * 100 + 50; // 减少生命值，原来为 Math.random() * 10 + 150
-                    const disappearDelay = Math.random() * 50; // 增大消失延迟的随机性，原来为 Math.random() * 30
+                    const life = Math.random() * 100; // 减少生命值，原来为 Math.random() * 10 + 150
+                    const disappearDelay = Math.random() * 30; // 增大消失延迟的随机性，原来为 Math.random() * 30
 
                     imageParticles.push({
                         x: particleX,
