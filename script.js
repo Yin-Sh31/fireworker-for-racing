@@ -139,11 +139,11 @@ class ImageParticle {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = 2; // 增加粒子半径
+        this.radius = 3; // 调整粒子半径到合理大小，使其图像清晰
         this.targetX = targetX;
         this.targetY = targetY;
         this.alpha = 0;  // 初始透明度为0
-        this.maxLife = Math.random() * 100 + 250; // 增加生命周期，让图像显示更久
+        this.maxLife = Math.random() * 400 + 100; // 增加生命周期的随机性 (100-500)
         this.life = 0;
         this.spawning = true; // 是否正在生成中
     }
