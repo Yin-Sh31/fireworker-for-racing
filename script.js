@@ -22,6 +22,11 @@ let particleCountThreshold = 0; // 连续粒子数超过1500的次数
 const PARTICLE_COUNT_THRESHOLD_MAX = 36; // 阈值：连续3650次
 let spiralModeActive = false; // 螺旋模式是否激活
 
+// 图片粒子相关变量
+let imageParticles = [];
+let imageParticleActive = false;
+let imageParticleTimer = 0;
+
 // 设置粒子数量上限
 const PARTICLE_LIMIT = 2048;
 
@@ -32,6 +37,132 @@ const colors = [
     '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41',
     '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
 ];
+
+// 加载随机图片并转换为粒子
+function loadImageAsParticles() {
+    // 随机选择一张图片 (1-3)
+    const randomNum = Math.floor(Math.random() * 3) + 1;
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // 防止跨域问题
+    img.src = `${randomNum}.jpg`;
+    
+    img.onload = function() {
+        console.log(`加载图片 ${randomNum}.jpg 成功，开始转换为粒子`);
+        imageParticles = [];
+        const imgCanvas = document.createElement('canvas');
+        const imgCtx = imgCanvas.getContext('2d');
+        const size = 64; // 图片最大为64x64像素
+        imgCanvas.width = size;
+        imgCanvas.height = size;
+        
+        // 将图片缩放到合适尺寸并绘制到canvas上
+        const scale = Math.min(size / img.width, size / img.height);
+        const width = img.width * scale;
+        const height = img.height * scale;
+        const x = (size - width) / 2;
+        const y = (size - height) / 2;
+        imgCtx.drawImage(img, x, y, width, height);
+        
+        // 获取图像数据
+        const imageData = imgCtx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        // 创建粒子，每个像素对应一个粒子
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const idx = (y * size + x) * 4; // 每个像素占4个字节(RGBA)
+                const r = data[idx];
+                const g = data[idx+1];
+                const b = data[idx+2];
+                const a = data[idx+3];
+                
+                // 只有当像素不是完全透明时才创建粒子
+                if (a > 0) {
+                    // 计算粒子在屏幕中央的位置
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    const particleX = centerX - (size/2 - x) * 4; // 4是粒子间隔
+                    const particleY = centerY - (size/2 - y) * 4; // 4是粒子间隔
+                    
+                    // 随机生命值
+                    const life = Math.random() * 100 + 50;
+                    
+                    imageParticles.push({
+                        x: particleX,
+                        y: particleY,
+                        color: `rgb(${r}, ${g}, ${b})`,
+                        radius: 2, // 基础半径
+                        alpha: 0, // 初始透明度为0
+                        targetAlpha: 1, // 目标透明度
+                        currentLife: life,
+                        maxLife: life,
+                        originalX: particleX, // 保存原始位置
+                        originalY: particleY
+                    });
+                }
+            }
+        }
+        console.log(`创建了 ${imageParticles.length} 个粒子`);
+        imageParticleActive = true;
+        imageParticleTimer = 0;
+    };
+    
+    img.onerror = function() {
+        console.error(`加载图片 ${randomNum}.jpg 失败`);
+    };
+}
+
+// 绘制图片粒子
+function drawImageParticles() {
+    for (let i = 0; i < imageParticles.length; i++) {
+        const p = imageParticles[i];
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.closePath();
+        
+        // 添加发光效果
+        const gradient = ctx.createRadialGradient(
+            p.x, p.y, 0,
+            p.x, p.y, p.radius * 4
+        );
+        gradient.addColorStop(0, p.color);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = p.alpha * 0.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+    }
+    ctx.globalAlpha = 1;
+}
+
+// 更新图片粒子状态
+function updateImageParticles() {
+    if (!imageParticleActive) return;
+    
+    imageParticleTimer++;
+    const fadeInDuration = 60; // 淡入持续时间（帧）
+    
+    for (let i = 0; i < imageParticles.length; i++) {
+        const p = imageParticles[i];
+        // 更新透明度，实现淡入效果
+        if (p.alpha < p.targetAlpha && imageParticleTimer < fadeInDuration) {
+            p.alpha = Math.min(p.targetAlpha, imageParticleTimer / fadeInDuration);
+        }
+        // 更新生命值
+        p.currentLife--;
+    }
+    
+    // 如果所有粒子的生命值都结束，停用图片粒子
+    if (imageParticleTimer > fadeInDuration && imageParticles.every(p => p.currentLife <= 0)) {
+        imageParticleActive = false;
+    }
+}
 
 // 粒子类 - 定义烟花粒子的属性和行为
 class Particle {
@@ -291,7 +422,7 @@ function createStars() {
     }
 }
 
-// 螺旋汇集动画函数 - 所有粒子向中心螺旋汇集并逐渐消失
+// 螺旋汇集动画函数 - 所有粒子向中心汇集并逐渐消失
 function spiralGatherAnimation() {
     // 计算中心点
     const centerX = canvas.width / 2;
@@ -368,6 +499,8 @@ function animate() {
         if (particleCountThreshold >= PARTICLE_COUNT_THRESHOLD_MAX) {
             spiralModeActive = true;
             console.log("螺旋模式激活：所有粒子开始向中心汇集");
+            // 同时激活图片粒子展示
+            loadImageAsParticles();
         }
 
         // 更新并绘制烟花
@@ -389,6 +522,12 @@ function animate() {
             const excess = particles.length - PARTICLE_LIMIT;
             particles.splice(0, excess);
         }
+    }
+
+    // 更新图片粒子
+    if (imageParticleActive) {
+        updateImageParticles();
+        drawImageParticles();
     }
 
     // 更新粒子计数显示
