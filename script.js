@@ -19,7 +19,7 @@ const fireworks = [];
 
 // 添加螺旋模式相关变量
 let particleCountThreshold = 0; // 连续粒子数超过1500的次数
-const PARTICLE_COUNT_THRESHOLD_MAX = 36; // 阈值：连续3650次
+const PARTICLE_COUNT_THRESHOLD_MAX = 365; // 阈值：连续3650次
 let spiralModeActive = false; // 螺旋模式是否激活
 
 // 图片粒子相关变量
@@ -97,7 +97,7 @@ function loadImageAsParticles() {
                     const appearDelay = delayFactor * 10; // 最大延迟120帧
 
                     // 随机生命值和消失延迟
-                    const life = Math.random() * 80 + 50; // 减少生命值，原来为 Math.random() * 10 + 150
+                    const life = Math.random() * 50 + 50; // 减少生命值，原来为 Math.random() * 10 + 150
                     const disappearDelay = Math.random() * 100; // 增大消失延迟的随机性，原来为 Math.random() * 30
 
                     imageParticles.push({
@@ -518,7 +518,7 @@ function animate() {
         spiralGatherAnimation();
     } else {
         // 检查粒子数量是否超过1500
-        if (particles.length > 500) {
+        if (particles.length > 800) {
             particleCountThreshold++;
         } else {
             particleCountThreshold = 0; // 重置计数器
