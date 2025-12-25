@@ -228,10 +228,10 @@
                 this.x = x;
                 this.y = y;
                 this.color = color;
-                this.radius = (Math.random() * 1.5 + 0.5); // 粒子大小改为原来的0.5
+                this.radius = (Math.random() * 1.5 + 0.5);
                 this.velocity = {
-                    x: (Math.random() - 0.5) * 15,
-                    y: (Math.random() - 0.5) * 15
+                    x: (Math.random() - 0.5) * 16,
+                    y: (Math.random() - 0.5) * 16
                 };
                 this.alpha = 1;
                 this.type = type || 'normal'; // normal, trail, spark
@@ -245,8 +245,8 @@
                     this.gravity = 0.01;
                     this.life = Math.random() * 30 + 60;
                 } else if (this.type === 'spark') {
-                    this.velocity.x *= 4;
-                    this.velocity.y *= 4;
+                    this.velocity.x *= 2;
+                    this.velocity.y *= 2;
                     this.life = Math.random() * 50 + 50;
                     this.shrink = Math.random() * 0.03 + 0.01;
                 } else {
