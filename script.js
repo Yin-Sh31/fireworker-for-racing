@@ -467,7 +467,7 @@ function launchFirework(startX, startY, targetX, targetY) {
     fireworks.push(new Firework(startFromX, startFromY, targetX, targetY));
 
     // 添加随机4字祝福语
-    const blessings = ['一帆风顺', '万事如意', '心想事成', '步步高升', '平安喜乐', '身体健康', '工作顺利', '学业有成', '龙马精神', '笑口常开'];
+    const blessings = ['一帆风顺', '万事如意', '心想事成', '步步高升', '平安喜乐', '身体健康', '天天开心', '学业有成', '诸事顺遂', '笑口常开'];
     const randomBlessing = blessings[Math.floor(Math.random() * blessings.length)];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     particles.push(new TextParticle(targetX, targetY - 50, randomBlessing, randomColor)); // 在爆炸点上方显示祝福语
@@ -562,7 +562,7 @@ function spiralGatherAnimation() {
     }
 
     // 如果所有粒子都消失了，退出螺旋模式
-    if (particles.length < 8) {
+    if (particles.length < 40) {
         spiralModeActive = false;
         particleCountThreshold = 0; // 重置计数器
     }
