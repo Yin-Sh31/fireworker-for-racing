@@ -67,6 +67,10 @@ function loadImageAsParticles() {
         const imageData = imgCtx.getImageData(0, 0, size, size);
         const data = imageData.data;
         
+        // 计算中心点
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
         // 创建粒子，每个像素对应一个粒子
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
@@ -79,13 +83,22 @@ function loadImageAsParticles() {
                 // 只有当像素不是完全透明时才创建粒子
                 if (a > 0) {
                     // 计算粒子在屏幕中央的位置
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
                     const particleX = centerX - (size/2 - x) * 4; // 4是粒子间隔
                     const particleY = centerY - (size/2 - y) * 4; // 4是粒子间隔
                     
-                    // 随机生命值
-                    const life = Math.random() * 100 + 50;
+                    // 计算到中心的距离，用于控制显示顺序
+                    const distanceToCenter = Math.sqrt(
+                        Math.pow(particleX - centerX, 2) + 
+                        Math.pow(particleY - centerY, 2)
+                    );
+                    
+                    // 计算延迟时间，距离中心越远延迟越长
+                    const delayFactor = distanceToCenter / (Math.sqrt(2) * size/2); // 归一化到0-1
+                    const appearDelay = delayFactor * 120; // 最大延迟120帧
+                    
+                    // 随机生命值和消失延迟
+                    const life = Math.random() * 100 + 150; // 增加生命值使效果更持久
+                    const disappearDelay = Math.random() * 60 + 30; // 随机消失延迟
                     
                     imageParticles.push({
                         x: particleX,
@@ -94,8 +107,10 @@ function loadImageAsParticles() {
                         radius: 2, // 基础半径
                         alpha: 0, // 初始透明度为0
                         targetAlpha: 1, // 目标透明度
-                        currentLife: life,
+                        currentLife: 0, // 初始生命值为0
                         maxLife: life,
+                        appearDelay: appearDelay, // 出现延迟
+                        disappearDelay: disappearDelay, // 消失延迟
                         originalX: particleX, // 保存原始位置
                         originalY: particleY
                     });
@@ -150,16 +165,30 @@ function updateImageParticles() {
     
     for (let i = 0; i < imageParticles.length; i++) {
         const p = imageParticles[i];
-        // 更新透明度，实现淡入效果
-        if (p.alpha < p.targetAlpha && imageParticleTimer < fadeInDuration) {
-            p.alpha = Math.min(p.targetAlpha, imageParticleTimer / fadeInDuration);
+        
+        // 根据延迟时间控制粒子的显示
+        if (imageParticleTimer > p.appearDelay) {
+            // 更新透明度，实现淡入效果
+            if (p.alpha < p.targetAlpha && imageParticleTimer < fadeInDuration + p.appearDelay) {
+                p.alpha = Math.min(p.targetAlpha, (imageParticleTimer - p.appearDelay) / fadeInDuration);
+            }
+            
+            // 更新生命值
+            if (p.currentLife < p.maxLife) {
+                p.currentLife++;
+            }
+            
+            // 当粒子达到最大生命值后，开始准备消失
+            if (p.currentLife >= p.maxLife - p.disappearDelay) {
+                // 开始淡出
+                const fadeOutProgress = (p.currentLife - (p.maxLife - p.disappearDelay)) / p.disappearDelay;
+                p.alpha = Math.max(0, 1 - fadeOutProgress);
+            }
         }
-        // 更新生命值
-        p.currentLife--;
     }
     
-    // 如果所有粒子的生命值都结束，停用图片粒子
-    if (imageParticleTimer > fadeInDuration && imageParticles.every(p => p.currentLife <= 0)) {
+    // 如果所有粒子都消失了，停用图片粒子
+    if (imageParticleTimer > fadeInDuration + 200 && imageParticles.every(p => p.alpha <= 0)) {
         imageParticleActive = false;
     }
 }
