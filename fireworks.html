@@ -4,16 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <title>浪漫夜空烟花秀</title> -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="container">
-        <div class="title">
-            <!-- <h1>浪漫夜空烟花秀</h1> -->
-        </div>
-        <div class="instructions">
+        <div class="instructions" id="instructions">
             点击任意位置发射烟花
         </div>
         <div class="particle-counter">
@@ -21,6 +17,16 @@
         </div>
         <canvas id="canvas"></canvas>
     </div>
+
+    <script>
+        // 点击后隐藏说明文字
+        document.addEventListener('click', function () {
+            const instructions = document.getElementById('instructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+        });
+    </script>
 
     <script src="script.js"></script>
 </body>

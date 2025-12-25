@@ -18,7 +18,7 @@ const particles = [];
 const fireworks = [];
 
 // 设置粒子数量上限
-const PARTICLE_LIMIT = 4096;
+const PARTICLE_LIMIT = 2048;
 
 // 颜色数组
 const colors = [
@@ -86,7 +86,7 @@ class Particle {
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
@@ -254,7 +254,7 @@ function launchFirework(x, y) {
 
 // 创建星空背景 - 在天空中随机生成星星
 function createStars() {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 32; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height / 2;
         const radius = (Math.random() * 1.2);
@@ -280,7 +280,7 @@ function createStars() {
                 this.alpha = Math.sin(Date.now() / 1000 + this.x) * 0.2 +
                     Math.random() * 0.3 + 0.5;
                 this.draw();
-                return true; // 永远存活
+                return true;
             }
         });
     }
@@ -289,7 +289,7 @@ function createStars() {
 // 动画循环函数 - 持续更新和绘制所有元素
 function animate() {
     // 清除画布，使用半透明黑色创建轨迹效果
-    ctx.fillStyle = 'rgba(12, 20, 69, 0.1)';
+    ctx.fillStyle = 'rgba(12, 20, 69, 0.12)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 更新并绘制烟花

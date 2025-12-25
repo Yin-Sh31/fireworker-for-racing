@@ -29,17 +29,18 @@ canvas {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* 确保canvas在底层 */
+    z-index: 1;
+    /* 确保canvas在底层 */
 }
 
-.title {
+/* .title {
     position: absolute;
     top: 20px;
     text-align: center;
     width: 100%;
     z-index: 10;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-}
+} */
 
 h1 {
     font-size: 2.5rem;
@@ -48,24 +49,28 @@ h1 {
 
 .instructions {
     position: absolute;
-    top: 80px;
+    top: 100px;
     text-align: center;
     width: 100%;
-    font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.8);
-    z-index: 10; /* 确保文本在canvas之上 */
-    pointer-events: none; /* 避免文本元素拦截鼠标事件 */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 增强文本可读性 */
+    font-size: 1.6rem;
+    color: rgba(255, 255, 255, 0.5);
+    z-index: 10;
+    /* 确保文本在canvas之上 */
+    pointer-events: none;
+    /* 避免文本元素拦截鼠标事件 */
+    font-weight: bold;
 }
 
 .particle-counter {
     position: absolute;
-    top: 120px;
-    width: 100%;
-    text-align: center;
-    font-size: 1rem;
+    bottom: 20px;
+    /* 改为距离底部20px */
+    left: 20px;
+    /* 距离左边20px */
+    font-size: 0.5rem;
     color: rgba(255, 255, 255, 0.7);
-    z-index: 10; /* 确保文本在canvas之上 */
-    pointer-events: none; /* 避免文本元素拦截鼠标事件 */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 增强文本可读性 */
+    z-index: 10;
+    /* 确保文本在canvas之上 */
+    pointer-events: none;
+    /* 避免文本元素拦截鼠标事件 */
 }
