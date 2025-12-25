@@ -286,7 +286,7 @@
         // 显示祝福语
         function showBlessing() {
             const blessingText = blessingTexts[Math.floor(Math.random() * blessingTexts.length)];
-            const blessingId = Date.now(); // 在函数开始时定义ID，确保一致
+            const blessingId = Date.now() + Math.random(); // 使用更唯一的ID
             
             // 如果祝福语数量达到上限，移除最早的
             if (blessings.length >= maxBlessings) {
@@ -319,22 +319,24 @@
             
             // 2秒后移除祝福语
             setTimeout(() => {
-                const index = blessings.findIndex(b => b.id === blessingId); // 使用一致的ID
+                const index = blessings.findIndex(b => b.id === blessingId);
                 if (index !== -1) {
                     const blessing = blessings[index];
-                    blessing.element.style.opacity = '0';
-                    setTimeout(() => {
-                        if (blessing.element.parentNode) {
-                            blessing.element.parentNode.removeChild(blessing.element);
-                        }
-                        const removeIndex = blessings.findIndex(b => b.id === blessing.id);
-                        if (removeIndex !== -1) {
-                            blessings.splice(removeIndex, 1);
-                        }
-                        
-                        // 重新调整剩余祝福语的位置
-                        updateBlessingPositions();
-                    }, 500);
+                    if (blessing.element) {
+                        blessing.element.style.opacity = '0';
+                        setTimeout(() => {
+                            if (blessing.element && blessing.element.parentNode) {
+                                blessing.element.parentNode.removeChild(blessing.element);
+                            }
+                            const removeIndex = blessings.findIndex(b => b.id === blessing.id);
+                            if (removeIndex !== -1) {
+                                blessings.splice(removeIndex, 1);
+                            }
+                            
+                            // 重新调整剩余祝福语的位置
+                            updateBlessingPositions();
+                        }, 500);
+                    }
                 }
             }, 2000);
         }
