@@ -94,11 +94,11 @@ function loadImageAsParticles() {
 
                     // 计算延迟时间，距离中心越远延迟越长
                     const delayFactor = distanceToCenter / (Math.sqrt(2) * size / 2); // 归一化到0-1
-                    const appearDelay = delayFactor * 20; // 最大延迟120帧
+                    const appearDelay = delayFactor * 10; // 最大延迟120帧
 
                     // 随机生命值和消失延迟
-                    const life = Math.random() * 100 + 150; // 增加生命值使效果更持久
-                    const disappearDelay = Math.random() * 60 + 30; // 随机消失延迟
+                    const life = Math.random() * 10 + 150; // 增加生命值使效果更持久
+                    const disappearDelay = Math.random() * 30; // 随机消失延迟
 
                     imageParticles.push({
                         x: particleX,
