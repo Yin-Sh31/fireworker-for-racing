@@ -139,11 +139,11 @@ class ImageParticle {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = 1.5;
+        this.radius = 2; // 增加粒子半径
         this.targetX = targetX;
         this.targetY = targetY;
         this.alpha = 0;  // 初始透明度为0
-        this.maxLife = Math.random() * 100 + 150; // 随机生命周期
+        this.maxLife = Math.random() * 100 + 250; // 增加生命周期，让图像显示更久
         this.life = 0;
         this.spawning = true; // 是否正在生成中
     }
@@ -176,24 +176,28 @@ class ImageParticle {
 
     // 更新粒子状态
     update() {
-        // 如果粒子正在生成中，逐渐增加透明度
+        // 如果粒子正在生成中，逐渐增加透明度并移动到目标位置
         if (this.spawning) {
             this.life++;
-            this.alpha = Math.min(this.life / 20, 1); // 逐渐增加透明度直到1
+            this.alpha = Math.min(this.life / 30, 1); // 逐渐增加透明度直到1
             
             // 粒子从中心向外移动
             const dx = this.targetX - this.initialX;
             const dy = this.targetY - this.initialY;
-            const progress = Math.min(this.life / 30, 1); // 控制移动速度
+            const progress = Math.min(this.life / 40, 1); // 控制移动速度
             
             this.x = this.initialX + dx * progress;
             this.y = this.initialY + dy * progress;
             
-            if (this.life >= 30) {
+            if (this.life >= 40) {
                 this.spawning = false; // 停止生成阶段
             }
         } else {
-            // 粒子到达目标位置后，开始倒计时
+            // 粒子到达目标位置后，保持在目标位置
+            this.x = this.targetX;
+            this.y = this.targetY;
+            
+            // 开始倒计时，准备消失
             this.life++;
             if (this.life >= this.maxLife) {
                 this.alpha -= 0.05; // 逐渐消失
