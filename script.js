@@ -46,7 +46,7 @@ class Particle {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = (Math.random() * 1.5 + 0.5);
+        this.radius = (Math.random() * 0.8 + 0.2); // 调整为更小的范围
         this.velocity = {
             x: (Math.random() - 0.5) * 16,
             y: (Math.random() - 0.5) * 16
@@ -109,7 +109,8 @@ class Particle {
 
         // 减少alpha值，模拟消失效果
         this.life--;
-        this.alpha = this.life > 15 ? 1 : this.life / 15; // 更快地减少alpha值
+        // 增加粒子透明度
+        this.alpha = this.life > 15 ? 0.8 : this.life / 15; // 调整透明度
 
         // 减小半径
         this.radius -= this.shrink;
@@ -139,7 +140,7 @@ class ImageParticle {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = 2; // 增加粒子半径到合理大小，使其图像清晰
+        this.radius = 1; // 进一步减小粒子半径
         this.targetX = targetX;
         this.targetY = targetY;
         this.alpha = 0;  // 初始透明度为0
@@ -179,7 +180,8 @@ class ImageParticle {
         // 如果粒子正在生成中，逐渐增加透明度并移动到目标位置
         if (this.spawning) {
             this.life++;
-            this.alpha = Math.min(this.life / 30, 1); // 逐渐增加透明度直到1
+            // 增加粒子透明度
+            this.alpha = Math.min(this.life / 60, 0.8); // 调整透明度
             
             // 粒子从中心向外移动
             const dx = this.targetX - this.initialX;
@@ -189,7 +191,7 @@ class ImageParticle {
             this.x = this.initialX + dx * progress;
             this.y = this.initialY + dy * progress;
             
-            if (this.life >= 40) {
+            if (this.life >= 60) {
                 this.spawning = false; // 停止生成阶段
             }
         } else {
@@ -200,7 +202,8 @@ class ImageParticle {
             // 开始倒计时，准备消失
             this.life++;
             if (this.life >= this.maxLife) {
-                this.alpha -= 0.02; // 减慢消失速度
+                // 减慢消失速度
+                this.alpha -= 0.01;
             }
         }
 
