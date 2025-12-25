@@ -96,9 +96,9 @@ function loadImageAsParticles() {
                     const delayFactor = distanceToCenter / (Math.sqrt(2) * size / 2); // 归一化到0-1
                     const appearDelay = delayFactor * 120; // 最大延迟120帧
 
-                    // 随机生命值和消失延迟
-                    const life = Math.random() * 100 + 350; // 增加生命值使效果更持久
-                    const disappearDelay = Math.random() * 60 + 30; // 随机消失延迟
+                    // 随机生命值和消失延迟 - 增加消失延迟的随机性
+                    const life = Math.random() * 100 + 150; // 增加生命值使效果更持久
+                    const disappearDelay = Math.random() * 100 + 10; // 扩大消失延迟的随机范围，提高随机性
 
                     imageParticles.push({
                         x: particleX,
@@ -161,7 +161,7 @@ function updateImageParticles() {
     if (!imageParticleActive) return;
 
     imageParticleTimer++;
-    const fadeInDuration = 6; // 淡入持续时间（帧）
+    const fadeInDuration = 2; // 淡入持续时间（帧）- 减少以加快显示速度
 
     for (let i = 0; i < imageParticles.length; i++) {
         const p = imageParticles[i];
@@ -528,7 +528,7 @@ function animate() {
         if (particleCountThreshold >= PARTICLE_COUNT_THRESHOLD_MAX) {
             spiralModeActive = true;
             console.log("螺旋模式激活：所有粒子开始向中心汇集");
-            // 同时激活图片粒子展示
+            // 同时激活图片粒子展示，并立即显示
             loadImageAsParticles();
         }
 
