@@ -212,7 +212,7 @@
         const fireworks = [];
 
         // 设置粒子数量上限
-        const PARTICLE_LIMIT = 1000;
+        const PARTICLE_LIMIT = 10000;
 
         // 颜色数组
         const colors = [
@@ -435,7 +435,7 @@
             for (let i = 0; i < 100; i++) {
                 const x = Math.random() * canvas.width;
                 const y = Math.random() * canvas.height / 2;
-                const radius = (Math.random() * 1.2) * 0.5; // 星星大小也调整为0.5倍
+                const radius = (Math.random() * 1.2);
                 const opacity = Math.random() * 0.8 + 0.2;
 
                 particles.push({
