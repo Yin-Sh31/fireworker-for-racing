@@ -123,6 +123,185 @@ class Particle {
     }
 }
 
+// 图像粒子类 - 用于显示图像中的像素点
+class ImageParticle {
+    /**
+     * 创建一个新的图像粒子
+     * @param {number} x - 粒子的x坐标
+     * @param {number} y - 粒子的y坐标
+     * @param {string} color - 粒子的颜色
+     * @param {number} targetX - 粒子的目标x坐标
+     * @param {number} targetY - 粒子的目标y坐标
+     */
+    constructor(x, y, color, targetX, targetY) {
+        this.initialX = x;  // 初始位置
+        this.initialY = y;
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 1.5;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.alpha = 0;  // 初始透明度为0
+        this.maxLife = Math.random() * 100 + 150; // 随机生命周期
+        this.life = 0;
+        this.spawning = true; // 是否正在生成中
+    }
+
+    // 绘制粒子
+    draw() {
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+
+        // 添加发光效果
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.radius * 4
+        );
+        gradient.addColorStop(0, this.color);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.globalAlpha = 1;
+    }
+
+    // 更新粒子状态
+    update() {
+        // 如果粒子正在生成中，逐渐增加透明度
+        if (this.spawning) {
+            this.life++;
+            this.alpha = Math.min(this.life / 20, 1); // 逐渐增加透明度直到1
+            
+            // 粒子从中心向外移动
+            const dx = this.targetX - this.initialX;
+            const dy = this.targetY - this.initialY;
+            const progress = Math.min(this.life / 30, 1); // 控制移动速度
+            
+            this.x = this.initialX + dx * progress;
+            this.y = this.initialY + dy * progress;
+            
+            if (this.life >= 30) {
+                this.spawning = false; // 停止生成阶段
+            }
+        } else {
+            // 粒子到达目标位置后，开始倒计时
+            this.life++;
+            if (this.life >= this.maxLife) {
+                this.alpha -= 0.05; // 逐渐消失
+            }
+        }
+
+        // 绘制粒子
+        this.draw();
+
+        // 返回是否还存活
+        return this.alpha > 0;
+    }
+}
+
+// 加载并显示图像的函数
+function displayImageAsParticles(imagePath) {
+    // 使用fetch API加载图片，转换为Blob，然后转为Base64
+    fetch(imagePath)
+        .then(response => response.blob())
+        .then(blob => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const img = new Image();
+                    img.src = reader.result;
+                    
+                    img.onload = function() {
+                        console.log(`Image loaded: ${imagePath}, size: ${img.width}x${img.height}`);
+                        
+                        // 创建一个临时canvas来处理图像
+                        const tempCanvas = document.createElement('canvas');
+                        const tempCtx = tempCanvas.getContext('2d');
+                        const maxSize = 64; // 最大尺寸为64像素
+                        
+                        // 计算缩放后的尺寸，保持宽高比
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height && width > maxSize) {
+                            height = (height / width) * maxSize;
+                            width = maxSize;
+                        } else if (height > maxSize) {
+                            width = (width / height) * maxSize;
+                            height = maxSize;
+                        }
+                        
+                        tempCanvas.width = width;
+                        tempCanvas.height = height;
+                        tempCtx.drawImage(img, 0, 0, width, height);
+                        
+                        // 获取图像数据
+                        const imageData = tempCtx.getImageData(0, 0, width, height);
+                        const data = imageData.data;
+                        
+                        // 计算图像在屏幕中央的位置
+                        const centerX = canvas.width / 2 - width / 2;
+                        const centerY = canvas.height / 2 - height / 2;
+                        
+                        // 遍历每个像素，创建粒子
+                        let particleCount = 0;
+                        for (let y = 0; y < height; y++) {
+                            for (let x = 0; x < width; x++) {
+                                const index = (y * width + x) * 4; // 每个像素有4个值(R,G,B,A)
+                                const r = data[index];
+                                const g = data[index + 1];
+                                const b = data[index + 2];
+                                const a = data[index + 3];
+                                
+                                // 如果像素不是完全透明的，则创建粒子
+                                if (a > 30) { // 提高透明度阈值，避免创建太多几乎透明的粒子
+                                    const pixelX = centerX + x;
+                                    const pixelY = centerY + y;
+                                    const color = `rgb(${r}, ${g}, ${b})`;
+                                    
+                                    // 创建图像粒子，从屏幕中心开始向外扩散
+                                    const imageParticle = new ImageParticle(
+                                        canvas.width / 2,  // 初始位置为屏幕中心
+                                        canvas.height / 2,
+                                        color,
+                                        pixelX,  // 目标位置为图像中对应像素位置
+                                        pixelY
+                                    );
+                                    
+                                    particles.push(imageParticle);
+                                    particleCount++;
+                                }
+                            }
+                        }
+                        console.log(`Created ${particleCount} particles from image`);
+                        resolve();
+                    };
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        })
+        .catch(error => {
+            console.error(`Failed to load image: ${imagePath}`, error);
+        });
+}
+
+// 随机选择图片并显示
+function showRandomImage() {
+    const randomNum = Math.floor(Math.random() * 3) + 1; // 1-3之间的随机数
+    const imagePath = `${randomNum}.jpg`;
+    console.log(`Loading image: ${imagePath}`);
+    displayImageAsParticles(imagePath);
+}
+
 // 烟花类 - 定义烟花发射和爆炸的逻辑
 class Firework {
     /**
@@ -368,6 +547,7 @@ function animate() {
         if (particleCountThreshold >= PARTICLE_COUNT_THRESHOLD_MAX) {
             spiralModeActive = true;
             console.log("螺旋模式激活：所有粒子开始向中心汇集");
+            showRandomImage(); // 在螺旋模式激活时显示随机图片
         }
 
         // 更新并绘制烟花
