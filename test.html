@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Fireworks</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        #canvas {
+            border: 1px solid #333;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            z-index: 10;
+        }
+
+        .control-item {
+            margin-bottom: 10px;
+        }
+
+        input[type="range"] {
+            width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div class="controls">
+            <div class="control-item">
+                <label>Gravity: </label>
+                <input type="range" id="gravity" min="0.01" max="0.5" step="0.01" value="0.1">
+            </div>
+            <div class="control-item">
+                <label>Trail: </label>
+                <input type="range" id="trail" min="0.5" max="0.99" step="0.01" value="0.9">
+            </div>
+            <div class="control-item">
+                <label>Particle Count: </label>
+                <input type="range" id="particleCount" min="50" max="300" step="10" value="150">
+            </div>
+        </div>
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Configurable values
+        const gravity = document.getElementById('gravity');
+        const trail = document.getElementById('trail');
+        const particleCount = document.getElementById('particleCount');
+
+        // Firework related variables
+        const particles = [];
+        let hue = 0;
+
+        class Particle {
+            constructor(x, y, color, isTrail = false) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random() * 2 + 1;
+                this.velocity = {
+                    x: isTrail ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5) * 5,
+                    y: isTrail ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5) * 5
+                };
+                this.alpha = 1;
+                this.isTrail = isTrail;
+                this.resistance = 0.92;
+                this.gravity = 0.01;
+                this.shrink = Math.random() * 0.05 + 0.015;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.draw();
+                this.velocity.x *= this.resistance;
+                this.velocity.y *= this.resistance;
+                this.velocity.y += parseFloat(gravity.value);
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+
+                if (!this.isTrail) {
+                    this.alpha -= 0.007;
+                    if (this.radius > 0.5) {
+                        this.radius -= this.shrink;
+                    }
+                }
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < parseInt(particleCount.value); i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            hue += 0.5;
+
+            ctx.fillStyle = `rgba(0, 0, 0, ${trail.value})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                if (particles[i].alpha <= 0.01) {
+                    particles.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                particles[i].update();
+            }
+        }
+
+        // Create random fireworks
+        setInterval(() => {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2;
+            const color = `hsl(${hue % 360}, 100%, 50%)`;
+            createParticles(x, y, color, parseInt(particleCount.value));
+        }, 1000);
+
+        animate();
+    </script>
+</body>
+
+</html>

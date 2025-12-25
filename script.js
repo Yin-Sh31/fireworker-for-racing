@@ -320,7 +320,7 @@ function animate() {
 
 // 鼠标点击事件 - 发射烟花
 canvas.addEventListener('click', function (e) {
-    if (particles.length < PARTICLE_LIMIT - 150) { // 预留足够空间
+    if (particles.length < PARTICLE_LIMIT) { // 预留足够空间
         launchFirework(e.clientX, e.clientY);
     }
 });
