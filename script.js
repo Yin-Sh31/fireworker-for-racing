@@ -161,7 +161,7 @@ function updateImageParticles() {
     if (!imageParticleActive) return;
 
     imageParticleTimer++;
-    const fadeInDuration = 20; // 淡入持续时间（帧）- 减少以加快显示速度
+    const fadeInDuration = 0; // 淡入持续时间（帧）- 减少以加快显示速度
 
     for (let i = 0; i < imageParticles.length; i++) {
         const p = imageParticles[i];
