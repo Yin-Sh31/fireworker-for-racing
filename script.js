@@ -562,7 +562,7 @@ function spiralGatherAnimation() {
     }
 
     // 如果所有粒子都消失了，退出螺旋模式
-    if (particles.length < 30) {
+    if (particles.length < 8) {
         spiralModeActive = false;
         particleCountThreshold = 0; // 重置计数器
     }
