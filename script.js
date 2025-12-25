@@ -139,11 +139,11 @@ class ImageParticle {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.radius = 3; // 调整粒子半径到合理大小，使其图像清晰
+        this.radius = 2; // 增加粒子半径到合理大小，使其图像清晰
         this.targetX = targetX;
         this.targetY = targetY;
         this.alpha = 0;  // 初始透明度为0
-        this.maxLife = Math.random() * 400 + 100; // 增加生命周期的随机性 (100-500)
+        this.maxLife = Math.random() * 800 + 200; // 大幅增加生命周期的随机性范围 (200-1000帧)
         this.life = 0;
         this.spawning = true; // 是否正在生成中
     }
@@ -200,7 +200,7 @@ class ImageParticle {
             // 开始倒计时，准备消失
             this.life++;
             if (this.life >= this.maxLife) {
-                this.alpha -= 0.05; // 逐渐消失
+                this.alpha -= 0.02; // 减慢消失速度
             }
         }
 
