@@ -38,7 +38,7 @@
         }
 
         .blessing {
-            display: inline-block;
+            display: block;
             color: white;
             font-size: 24px;
             font-weight: bold;
@@ -48,7 +48,9 @@
             margin: 5px 0;
             opacity: 1;
             transition: opacity 0.5s, transform 0.5s;
-            position: relative;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             animation: float 2s ease-out;
         }
 
@@ -284,6 +286,7 @@
         // 显示祝福语
         function showBlessing() {
             const blessingText = blessingTexts[Math.floor(Math.random() * blessingTexts.length)];
+            const blessingId = Date.now(); // 在函数开始时定义ID，确保一致
             
             // 如果祝福语数量达到上限，移除最早的
             if (blessings.length >= maxBlessings) {
@@ -295,10 +298,10 @@
             // 创建新的祝福语元素
             const blessingElement = document.createElement('div');
             blessingElement.className = 'blessing';
-            blessingElement.id = `blessing-${Date.now()}`;
+            blessingElement.id = `blessing-${blessingId}`;
             blessingElement.textContent = blessingText;
             
-            // 计算垂直位置
+            // 计算垂直位置 - 每个祝福语垂直堆叠
             const blessingIndex = blessings.length;
             blessingElement.style.top = `${20 + blessingIndex * 40}px`;
             
@@ -306,14 +309,17 @@
             
             // 记录祝福语
             blessings.push({
-                id: Date.now(),
+                id: blessingId,
                 element: blessingElement,
                 createdAt: Date.now()
             });
             
+            // 重新调整所有祝福语的位置
+            updateBlessingPositions();
+            
             // 2秒后移除祝福语
             setTimeout(() => {
-                const index = blessings.findIndex(b => b.id === Date.now());
+                const index = blessings.findIndex(b => b.id === blessingId); // 使用一致的ID
                 if (index !== -1) {
                     const blessing = blessings[index];
                     blessing.element.style.opacity = '0';
@@ -325,17 +331,30 @@
                         if (removeIndex !== -1) {
                             blessings.splice(removeIndex, 1);
                         }
+                        
+                        // 重新调整剩余祝福语的位置
+                        updateBlessingPositions();
                     }, 500);
                 }
             }, 2000);
+        }
+        
+        // 更新祝福语位置
+        function updateBlessingPositions() {
+            for (let i = 0; i < blessings.length; i++) {
+                blessings[i].element.style.top = `${20 + i * 40}px`;
+            }
         }
 
         // 动画循环
         function animate() {
             requestAnimationFrame(animate);
             
-            // 清除画布并绘制夜空背景
-            ctx.fillStyle = 'rgba(0, 4, 40, 0.2)';
+            // 清除画布并绘制渐变背景，防止多次叠加导致变浅
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#000428');
+            gradient.addColorStop(1, '#004e92');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // 更新和绘制粒子
