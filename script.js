@@ -18,7 +18,7 @@ const particles = [];
 const fireworks = [];
 
 // 设置粒子数量上限
-const PARTICLE_LIMIT = 2048;
+const PARTICLE_LIMIT = 4096;
 
 // 颜色数组
 const colors = [
@@ -79,14 +79,14 @@ class Particle {
         // 添加发光效果
         const gradient = ctx.createRadialGradient(
             this.x, this.y, 0,
-            this.x, this.y, this.radius * 2
+            this.x, this.y, this.radius * 4
         );
         gradient.addColorStop(0, this.color);
         gradient.addColorStop(1, 'transparent');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
 
@@ -165,14 +165,14 @@ class Firework {
         // 添加发光效果
         const gradient = ctx.createRadialGradient(
             this.x, this.y, 0,
-            this.x, this.y, 8
+            this.x, this.y, 6
         );
         gradient.addColorStop(0, this.color);
         gradient.addColorStop(1, 'transparent');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
     }
