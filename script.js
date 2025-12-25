@@ -41,7 +41,7 @@ const colors = [
 // 加载随机图片并转换为粒子
 function loadImageAsParticles() {
     // 随机选择一张图片 (1-3)
-    const randomNum = Math.floor(Math.random() * 3) + 1;
+    const randomNum = Math.floor(Math.random() * 5) + 1;
     const img = new Image();
     img.crossOrigin = "Anonymous"; // 防止跨域问题
     img.src = `${randomNum}.jpg`;
