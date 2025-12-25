@@ -97,7 +97,7 @@ function loadImageAsParticles() {
                     const appearDelay = delayFactor * 10; // 最大延迟120帧
 
                     // 随机生命值和消失延迟
-                    const life = Math.random() * 50 + 50; // 减少生命值，原来为 Math.random() * 10 + 150
+                    const life = Math.random() * 64 + 50; // 减少生命值，原来为 Math.random() * 10 + 150
                     const disappearDelay = Math.random() * 100; // 增大消失延迟的随机性，原来为 Math.random() * 30
 
                     imageParticles.push({
@@ -161,7 +161,7 @@ function updateImageParticles() {
     if (!imageParticleActive) return;
 
     imageParticleTimer++;
-    const fadeInDuration = 40; // 淡入持续时间（帧）
+    const fadeInDuration = 36; // 淡入持续时间（帧）
 
     for (let i = 0; i < imageParticles.length; i++) {
         const p = imageParticles[i];
@@ -244,7 +244,7 @@ class Particle {
         // 添加发光效果
         const gradient = ctx.createRadialGradient(
             this.x, this.y, 0,
-            this.x, this.y, this.radius * 4
+            this.x, this.y, this.radius * 6
         );
         gradient.addColorStop(0, this.color);
         gradient.addColorStop(1, 'transparent');
@@ -475,7 +475,7 @@ function launchFirework(startX, startY, targetX, targetY) {
 
 // 创建星空背景 - 在天空中随机生成星星
 function createStars() {
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 32; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height / 2;
         const radius = (Math.random() * 1.2);
@@ -521,6 +521,12 @@ function spiralGatherAnimation() {
     // 更新所有粒子位置
     for (let i = particles.length - 1; i >= 0; i--) {
         const particle = particles[i];
+
+        // 检查是否为文字粒子，如果是，则立即移除
+        if (particle.text !== undefined) { // 检测是否为TextParticle实例
+            particles.splice(i, 1);
+            continue;
+        }
 
         // 计算到中心的距离
         const dx = centerX - particle.x;
