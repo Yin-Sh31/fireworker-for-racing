@@ -41,7 +41,7 @@ const colors = [
 // 加载随机图片并转换为粒子
 function loadImageAsParticles() {
     // 随机选择一张图片 (1-3)
-    const randomNum = Math.floor(Math.random() * 5) + 1;
+    const randomNum = Math.floor(Math.random() * 18) + 1;
     const img = new Image();
     img.crossOrigin = "Anonymous"; // 防止跨域问题
     img.src = `${randomNum}.jpg`;
@@ -580,7 +580,7 @@ function animate() {
         spiralGatherAnimation();
     } else {
         // 检查粒子数量是否超过1500
-        if (particles.length > 400) {
+        if (particles.length > 365) {
             particleCountThreshold++;
         } else {
             particleCountThreshold = 0; // 重置计数器
@@ -632,8 +632,8 @@ canvas.addEventListener('click', function (e) {
     // 在螺旋模式期间禁用烟花发射
     if (!spiralModeActive && particles.length < PARTICLE_LIMIT) { // 预留足够空间
         // 计算随机偏移位置，让爆炸点在点击位置的上下左右随机偏移
-        const offsetX = Math.random() * 100 - 50; // -50 到 50 像素的随机偏移
-        const offsetY = Math.random() * 100 - 50; // -50 到 50 像素的随机偏移
+        const offsetX = Math.random() * 100 - 64; // -50 到 50 像素的随机偏移
+        const offsetY = Math.random() * 100 - 64; // -50 到 50 像素的随机偏移
         const targetX = Math.max(50, Math.min(canvas.width - 50, e.clientX + offsetX)); // 限制在画布内
         const targetY = Math.max(50, Math.min(canvas.height - 50, e.clientY + offsetY)); // 限制在画布内
         launchFirework(e.clientX, e.clientY, targetX, targetY);
