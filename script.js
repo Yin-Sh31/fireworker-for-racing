@@ -41,7 +41,7 @@ const colors = [
 // 加载随机图片并转换为粒子
 function loadImageAsParticles() {
     // 随机选择一张图片 (1-3)
-    const randomNum = Math.floor(Math.random() * 5) + 1;
+    const randomNum = Math.floor(Math.random() * 18) + 1;
     const img = new Image();
     img.crossOrigin = "Anonymous"; // 防止跨域问题
     img.src = `${randomNum}.jpg`;
@@ -571,7 +571,7 @@ function spiralGatherAnimation() {
 // 动画循环函数 - 持续更新和绘制所有元素
 function animate() {
     // 清除画布，使用半透明黑色创建轨迹效果
-    ctx.fillStyle = 'rgba(12, 20, 69, 0.12)';
+    ctx.fillStyle = 'rgba(4, 9, 43, 0.12)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 检查是否处于螺旋模式
